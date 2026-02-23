@@ -67,14 +67,6 @@ const Login = () => {
                     <p>Don't have an account? <Link to="/register" style={{ color: '#3b82f6' }}>Become a Donor</Link></p>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-gray">
-                    <p className="font-bold mb-2">Demo Credentials:</p>
-                    <div className="grid grid-cols-1 gap-1 text-left">
-                        <p><span className="font-bold">Admin:</span> admin@bloodbank.com / password123</p>
-                        <p><span className="font-bold">Donor:</span> john@donor.com / password123</p>
-                        <p><span className="font-bold">Hospital:</span> hospital@city.com / password123</p>
-                    </div>
-                </div>
             </div>
         </div>
     );

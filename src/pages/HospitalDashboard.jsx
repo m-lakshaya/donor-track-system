@@ -6,7 +6,7 @@ import { Activity, Plus, FileText, Droplet } from 'lucide-react';
 
 const HospitalDashboard = () => {
     const { user } = useAuth();
-    const { bloodStock, requests, addRequest } = useData();
+    const { bloodStock, requests, addRequest, donors } = useData();
     const [requestForm, setRequestForm] = useState({
         patient_name: '',
         blood_group: '',
@@ -124,26 +124,41 @@ const HospitalDashboard = () => {
                                         <th className="pb-2">Group</th>
                                         <th className="pb-2">Units</th>
                                         <th className="pb-2">Date</th>
+                                        <th className="pb-2">Donor</th>
                                         <th className="pb-2">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {myRequests.slice(0, 5).map(req => (
-                                        <tr key={req.id} className="border-b last:border-0 ">
-                                            <td className="py-3 font-medium">{req.patient_name}</td>
-                                            <td className="py-3 font-bold text-red-600">{req.blood_group}</td>
-                                            <td className="py-3">{req.units}</td>
-                                            <td className="py-3 text-gray-500">{new Date(req.created_at).toLocaleDateString()}</td>
-                                            <td className="py-3">
-                                                <span className={`px-2 py-1 rounded text-xs capitalize
-                                                    ${req.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                        req.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'}`}>
-                                                    {req.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {myRequests.map(req => {
+                                        const donor = req.donor_id ? donors.find(d => d.id === req.donor_id) : null;
+                                        return (
+                                            <tr key={req.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                                                <td className="py-3 font-medium">{req.patient_name}</td>
+                                                <td className="py-3 font-bold text-red-600">{req.blood_group}</td>
+                                                <td className="py-3">{req.units}</td>
+                                                <td className="py-3 text-gray-500">{new Date(req.created_at).toLocaleDateString()}</td>
+                                                <td className="py-3 text-gray-600">
+                                                    {donor ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
+                                                                {donor.name?.charAt(0)}
+                                                            </div>
+                                                            {donor.name}
+                                                        </div>
+                                                    ) : '-'}
+                                                </td>
+                                                <td className="py-3">
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider
+                                                    ${req.status === 'fulfilled' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                                                            req.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                                                req.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                                                    'bg-yellow-100 text-yellow-800 border border-yellow-200'}`}>
+                                                        {req.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                             {myRequests.length === 0 && <p className="text-center text-gray-500 mt-4">No requests sent yet.</p>}
