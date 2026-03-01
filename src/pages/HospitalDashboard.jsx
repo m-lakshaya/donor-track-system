@@ -123,7 +123,8 @@ const HospitalDashboard = () => {
                                         <th className="pb-2">Patient</th>
                                         <th className="pb-2">Group</th>
                                         <th className="pb-2">Units</th>
-                                        <th className="pb-2">Date</th>
+                                        <th className="pb-2">Appointment</th>
+                                        <th className="pb-2">Location</th>
                                         <th className="pb-2">Donor</th>
                                         <th className="pb-2">Status</th>
                                     </tr>
@@ -136,14 +137,26 @@ const HospitalDashboard = () => {
                                                 <td className="py-3 font-medium">{req.patient_name}</td>
                                                 <td className="py-3 font-bold text-red-600">{req.blood_group}</td>
                                                 <td className="py-3">{req.units}</td>
-                                                <td className="py-3 text-gray-500">{new Date(req.created_at).toLocaleDateString()}</td>
+                                                <td className="py-3">
+                                                    {req.donation_date ? (
+                                                        <div className="text-xs">
+                                                            <p className="font-bold">{req.donation_date}</p>
+                                                            <p className="text-gray-500">{req.donation_time}</p>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-400 italic">Pending donor</span>
+                                                    )}
+                                                </td>
+                                                <td className="py-3 text-xs max-w-[120px] truncate" title={req.donation_location}>
+                                                    {req.donation_location || '-'}
+                                                </td>
                                                 <td className="py-3 text-gray-600">
                                                     {donor ? (
                                                         <div className="flex items-center gap-1">
                                                             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
                                                                 {donor.name?.charAt(0)}
                                                             </div>
-                                                            {donor.name}
+                                                            <span className="truncate max-w-[80px]">{donor.name}</span>
                                                         </div>
                                                     ) : '-'}
                                                 </td>

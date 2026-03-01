@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import StatCard from '../components/StatCard';
-import { User, Clock, Heart, Calendar } from 'lucide-react';
+import { User, Clock, Heart, Calendar, MapPin, CheckCircle2, X } from 'lucide-react';
 
 const DonorDashboard = () => {
     const { user } = useAuth();
     const { requests, handleRequestStatus } = useData();
+    const [confirmingReq, setConfirmingReq] = useState(null);
+    const [confirmData, setConfirmData] = useState({
+        date: '',
+        time: '',
+        location: ''
+    });
 
     // Calculate previous donations where this user is the donor_id
     const donationCount = requests.filter(r => r.donor_id === user.id && r.status === 'fulfilled').length;
@@ -53,19 +60,76 @@ const DonorDashboard = () => {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={async () => {
-                                                if (confirm('Confirm that you are available to donate?')) {
-                                                    const { error } = await handleRequestStatus(req.id, 'fulfilled', { donor_id: user.id });
-                                                    if (error) {
-                                                        alert("Error: " + error.message + "\n\nDid you run the 'patch_donations.sql' script in Supabase?");
-                                                    }
-                                                }
-                                            }}
+                                            onClick={() => setConfirmingReq(req)}
                                             className="btn btn-primary text-sm px-4 py-2 shadow hover:shadow-md transition-all whitespace-nowrap ml-2"
                                         >
                                             Donate Now
                                         </button>
                                     </div>
+
+                                    {/* Confirmation Form */}
+                                    {confirmingReq?.id === req.id && (
+                                        <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-2">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h4 className="font-bold text-red-800 flex items-center gap-2">
+                                                    <Clock size={16} /> Confirm Appointment
+                                                </h4>
+                                                <button onClick={() => setConfirmingReq(null)} className="text-gray-400 hover:text-gray-600">
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-600 uppercase">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        className="input-field bg-white py-1 text-sm"
+                                                        value={confirmData.date}
+                                                        onChange={e => setConfirmData({ ...confirmData, date: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-600 uppercase">Time</label>
+                                                    <input
+                                                        type="time"
+                                                        className="input-field bg-white py-1 text-sm"
+                                                        value={confirmData.time}
+                                                        onChange={e => setConfirmData({ ...confirmData, time: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="text-xs font-bold text-gray-600 uppercase">Specific Location (Floor/Room)</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. 2nd Floor, Blood Bank Unit"
+                                                        className="input-field bg-white py-1 text-sm"
+                                                        value={confirmData.location}
+                                                        onChange={e => setConfirmData({ ...confirmData, location: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <button
+                                                disabled={!confirmData.date || !confirmData.time || !confirmData.location}
+                                                onClick={async () => {
+                                                    const { error } = await handleRequestStatus(req.id, 'fulfilled', {
+                                                        donor_id: user.id,
+                                                        donation_date: confirmData.date,
+                                                        donation_time: confirmData.time,
+                                                        donation_location: confirmData.location
+                                                    });
+                                                    if (error) {
+                                                        alert("Error: " + error.message);
+                                                    } else {
+                                                        setConfirmingReq(null);
+                                                        setConfirmData({ date: '', time: '', location: '' });
+                                                    }
+                                                }}
+                                                className="btn btn-primary w-full py-2 flex items-center justify-center gap-2"
+                                            >
+                                                <CheckCircle2 size={18} /> Confirm Donation
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -86,7 +150,17 @@ const DonorDashboard = () => {
                                     </div>
                                     <div>
                                         <p className="font-bold">{item.hospital_name}</p>
-                                        <p className="text-sm text-gray">{new Date(item.created_at).toLocaleDateString()}</p>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                            <p className="text-sm text-gray flex items-center gap-1">
+                                                <Calendar size={12} /> {item.donation_date || new Date(item.created_at).toLocaleDateString()}
+                                            </p>
+                                            <p className="text-sm text-gray flex items-center gap-1">
+                                                <Clock size={12} /> {item.donation_time || '--:--'}
+                                            </p>
+                                            <p className="text-sm text-gray flex items-center gap-1">
+                                                <MapPin size={12} /> {item.donation_location || 'Hospital'}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             ))
