@@ -43,8 +43,8 @@ const Register = () => {
     };
 
     return (
-        <div className="flex items-center justify-center p-4">
-            <div className="card" style={{ width: '100%', maxWidth: '500px' }}>
+        <div className="flex items-center justify-center p-4 bg-mesh" style={{ minHeight: 'calc(100vh - 80px)', paddingBottom: '3rem', paddingTop: '2rem' }}>
+            <div className="glass-panel animate-fade-in-up" style={{ width: '100%', maxWidth: '500px', padding: '2.5rem', borderRadius: '1.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)' }}>
                 <div className="flex flex-col items-center mb-6">
                     <Heart size={40} color="#ef4444" />
                     <h1 className="text-xl font-bold mt-2">Join as a Donor</h1>

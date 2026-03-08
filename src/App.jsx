@@ -8,6 +8,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import DonorDashboard from "./pages/DonorDashboard";
 import HospitalDashboard from "./pages/HospitalDashboard";
 import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 
 /* ---------- Protected Route ---------- */
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -27,17 +28,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-/* ---------- Root Redirect ---------- */
-const HomeRedirect = () => {
-  const { user } = useAuth();
 
-  if (!user) return <Navigate to="/login" />;
-  if (user.role === "admin") return <Navigate to="/admin" />;
-  if (user.role === "donor") return <Navigate to="/donor" />;
-  if (user.role === "hospital") return <Navigate to="/hospital" />;
-
-  return <Navigate to="/login" />;
-};
 
 /* ---------- App ---------- */
 function App() {
@@ -78,7 +69,7 @@ function App() {
                 }
               />
 
-              <Route path="/" element={<HomeRedirect />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </main>
         </div>

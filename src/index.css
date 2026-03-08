@@ -237,8 +237,156 @@ button {
 
   /* Reduce gap slightly on very small screens if needed, but 1.5rem is usually fine. Ensuring no negative margins */
 
-  /* Stack flex containers on mobile if needed */
   .flex-col-mobile {
     flex-direction: column;
   }
+}
+
+/* Premium / Trending UI Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #ff8a65 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-mesh {
+  background-color: #fafafa;
+  background-image:
+    radial-gradient(at 10% 20%, hsla(353, 100%, 76%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, hsla(210, 100%, 76%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, hsla(353, 100%, 76%, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-fast {
+  animation: float 4s ease-in-out infinite alternate;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+.span-12 {
+  grid-column: span 12 / span 12;
+}
+
+.span-8 {
+  grid-column: span 12 / span 12;
+}
+
+.span-4 {
+  grid-column: span 12 / span 12;
+}
+
+@media (min-width: 768px) {
+  .md-span-8 {
+    grid-column: span 8 / span 8;
+  }
+
+  .md-span-4 {
+    grid-column: span 4 / span 4;
+  }
+
+  .md-span-6 {
+    grid-column: span 6 / span 6;
+  }
+}
+
+.bento-item {
+  border-radius: 1.5rem;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.bento-item:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom rounded buttons for premium feel */
+.btn-pill {
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.bg-blur-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  z-index: -1;
 }

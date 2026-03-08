@@ -21,8 +21,8 @@ const Login = () => {
     };
 
     return (
-        <div className="flex items-center justify-center p-4" style={{ minHeight: '80vh' }}>
-            <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <div className="flex items-center justify-center p-4 bg-mesh" style={{ minHeight: 'calc(100vh - 80px)' }}>
+            <div className="glass-panel animate-fade-in-up" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', borderRadius: '1.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)' }}>
                 <div className="flex flex-col items-center mb-6">
                     <Heart size={48} color="#ef4444" fill="#ef4444" />
                     <h1 className="page-title" style={{ marginBottom: 0, marginTop: '1rem', fontSize: '1.5rem' }}>Donor Track</h1>
