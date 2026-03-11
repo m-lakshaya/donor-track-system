@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import StatCard from '../components/StatCard';
-import { Activity, Plus, FileText, Droplet } from 'lucide-react';
+import { Activity, Plus, FileText, Droplet, Heart, User } from 'lucide-react';
 
 const HospitalDashboard = () => {
     const { user } = useAuth();
-    const { bloodStock, requests, addRequest, donors } = useData();
+    const { bloodStock, requests, addRequest, donors, handleRequestStatus } = useData();
     const [requestForm, setRequestForm] = useState({
         patient_name: '',
         blood_group: '',
@@ -15,7 +15,6 @@ const HospitalDashboard = () => {
 
     // Stats
     const myRequests = requests.filter(r => r.requester_id === user.id);
-    // Count 'fulfilled' (Donor accepted) as approved for the stats view
     const approvedRequests = myRequests.filter(r => r.status === 'approved' || r.status === 'fulfilled').length;
     const pendingRequests = myRequests.filter(r => r.status === 'pending').length;
 
@@ -26,47 +25,50 @@ const HospitalDashboard = () => {
             hospital_name: user.name || 'Hospital',
             ...requestForm
         });
-        setRequestForm({ patientName: '', bloodGroup: '', units: 1 });
+        setRequestForm({ patient_name: '', blood_group: '', units: 1 });
         alert('Request sent successfully!');
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="page-title mb-0">Hospital Portal</h1>
+        <div className="animate-fade-in-up">
+            <div className="flex justify-between items-center mb-10">
+                <div>
+                    <h1 className="page-title mb-1 text-2xl font-black">Hospital Portal</h1>
+                    <p className="text-slate-400 text-sm font-medium">Manage your blood requests and donor notifications</p>
+                </div>
                 <div className="text-right">
-                    <p className="font-bold">{user.name}</p>
-                    <p className="text-xs text-gray">{user.address || 'City Hospital'}</p>
+                    <p className="font-black text-slate-800">{user.name}</p>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{user.address || 'City Hospital'}</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <StatCard title="Total Requests" value={myRequests.length} icon={FileText} color="#3b82f6" />
-                <StatCard title="Fulfilled / Approved" value={approvedRequests} icon={Activity} color="#10b981" />
-                <StatCard title="Pending" value={pendingRequests} icon={Activity} color="#f59e0b" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <StatCard title="Total Requests" value={myRequests.length} icon={FileText} color="#6366f1" />
+                <StatCard title="Fulfilled" value={approvedRequests} icon={Activity} color="#10b981" />
+                <StatCard title="Pending" value={pendingRequests} icon={Activity} color="#f43f5e" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
                 {/* Request Form */}
-                <div className="card lg:col-span-1 h-fit">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Plus className="text-red-500" /> New Blood Request
+                <div className="card lg:col-span-1 h-fit shadow-lg border-none" style={{ background: 'white' }}>
+                    <h2 className="text-xl font-black mb-6 flex items-center gap-3 text-slate-800">
+                        <Plus className="text-rose-500" /> New Request
                     </h2>
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-3">
-                            <label className="text-sm font-medium mb-1 block">Patient Name</label>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <div>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Patient Name</label>
                             <input
-                                className="input-field"
+                                className="input-field mb-0"
+                                placeholder="Enter patient name"
                                 value={requestForm.patient_name}
                                 onChange={e => setRequestForm({ ...requestForm, patient_name: e.target.value })}
                                 required
                             />
                         </div>
-                        <div className="mb-3">
-                            <label className="text-sm font-medium mb-1 block">Blood Group Needed</label>
+                        <div>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Blood Group</label>
                             <select
-                                className="input-field"
+                                className="input-field mb-0"
                                 value={requestForm.blood_group}
                                 onChange={e => setRequestForm({ ...requestForm, blood_group: e.target.value })}
                                 required
@@ -82,99 +84,179 @@ const HospitalDashboard = () => {
                                 <option value="O-">O-</option>
                             </select>
                         </div>
-                        <div className="mb-4">
-                            <label className="text-sm font-medium mb-1 block">Units Required</label>
+                        <div>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Units Needed</label>
                             <input
                                 type="number"
                                 min="1"
-                                className="input-field"
+                                className="input-field mb-0"
                                 value={requestForm.units}
                                 onChange={e => setRequestForm({ ...requestForm, units: parseInt(e.target.value) })}
                                 required
                             />
                         </div>
-                        <button type="submit" className="btn btn-primary w-full">Send Request</button>
+                        <button type="submit" className="btn btn-primary w-full mt-2 font-black uppercase tracking-widest">Send Request</button>
                     </form>
                 </div>
 
-                <div className="lg:col-span-2 flex flex-col gap-6">
+                <div className="lg:col-span-2 flex flex-col gap-8">
                     {/* Live Blood Stock (Read Only) */}
-                    <div className="card">
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <Droplet className="text-red-500" /> Available Blood Stock
+                    <div className="card shadow-lg border-none" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' }}>
+                        <h2 className="text-xl font-black mb-6 flex items-center gap-3 text-slate-800">
+                            <Droplet className="text-rose-500" /> Live Blood Stock
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {bloodStock.map((stock) => (
-                                <div key={stock.group} className="flex flex-col items-center p-3 border rounded bg-gray-50">
-                                    <span className="font-bold text-lg text-red-600">{stock.group}</span>
-                                    <span className="text-sm text-gray">{stock.quantity} Units</span>
+                                <div key={stock.group_name} className="flex flex-col items-center p-4 border border-slate-100 rounded-2xl bg-white shadow-sm transition-all hover:shadow-md">
+                                    <span className="font-black text-2xl text-rose-600 mb-1">{stock.group_name}</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stock.quantity} Units</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Recent Requests */}
-                    <div className="card">
-                        <h2 className="text-xl font-bold mb-4">Your Recent Requests</h2>
+                    {/* Request Management */}
+                    <div className="glass-panel" style={{ borderRadius: '2rem', padding: '2rem' }}>
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-black flex items-center gap-3 text-slate-900">
+                                <Activity className="text-rose-500" size={24} /> Request Management
+                            </h2>
+                            <span className="px-3 py-1 bg-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest rounded-full">Live Monitor</span>
+                        </div>
+
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-gray-500 border-b">
-                                    <tr>
-                                        <th className="pb-2">Patient</th>
-                                        <th className="pb-2">Group</th>
-                                        <th className="pb-2">Units</th>
-                                        <th className="pb-2">Appointment</th>
-                                        <th className="pb-2">Location</th>
-                                        <th className="pb-2">Donor</th>
-                                        <th className="pb-2">Status</th>
+                            <table className="w-full text-sm" style={{ borderCollapse: 'separate', borderSpacing: '0 1rem' }}>
+                                <thead>
+                                    <tr className="text-slate-400 uppercase tracking-widest font-black" style={{ fontSize: '10px' }}>
+                                        <th className="pb-2 text-left px-4">Patient Profile</th>
+                                        <th className="pb-2 text-center">Status</th>
+                                        <th className="pb-2 text-right px-4">Action Required</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {myRequests.map(req => {
                                         const donor = req.donor_id ? donors.find(d => d.id === req.donor_id) : null;
+                                        const canCancel = req.status === 'notified' && req.notified_at && (new Date() - new Date(req.notified_at) > 3600000);
+
                                         return (
-                                            <tr key={req.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                                                <td className="py-3 font-medium">{req.patient_name}</td>
-                                                <td className="py-3 font-bold text-red-600">{req.blood_group}</td>
-                                                <td className="py-3">{req.units}</td>
-                                                <td className="py-3">
-                                                    {req.donation_date ? (
-                                                        <div className="text-xs">
-                                                            <p className="font-bold">{req.donation_date}</p>
-                                                            <p className="text-gray-500">{req.donation_time}</p>
+                                            <tr key={req.id} className="transition-all" style={{ backgroundColor: 'white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', borderRadius: '1.25rem' }}>
+                                                <td className="py-5 px-4" style={{ borderTopLeftRadius: '1.25rem', borderBottomLeftRadius: '1.25rem' }}>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex items-center justify-center font-black text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
+                                                            {req.blood_group}
                                                         </div>
-                                                    ) : (
-                                                        <span className="text-gray-400 italic">Pending donor</span>
-                                                    )}
-                                                </td>
-                                                <td className="py-3 text-xs max-w-[120px] truncate" title={req.donation_location}>
-                                                    {req.donation_location || '-'}
-                                                </td>
-                                                <td className="py-3 text-gray-600">
-                                                    {donor ? (
-                                                        <div className="flex items-center gap-1">
-                                                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
-                                                                {donor.name?.charAt(0)}
-                                                            </div>
-                                                            <span className="truncate max-w-[80px]">{donor.name}</span>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="font-bold text-slate-800 text-base truncate">{req.patient_name}</span>
+                                                            {donor && (
+                                                                <span className="text-xs text-indigo-600 font-bold mt-0.5 flex items-center gap-1">
+                                                                    <User size={10} /> Matched: {donor.name}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                    ) : '-'}
+                                                    </div>
                                                 </td>
-                                                <td className="py-3">
-                                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider
-                                                    ${req.status === 'fulfilled' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                                                            req.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                                                req.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
-                                                                    'bg-yellow-100 text-yellow-800 border border-yellow-200'}`}>
+                                                <td className="py-5 text-center">
+                                                    <span className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border inline-block
+                                                    ${req.status === 'fulfilled' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                            req.status === 'notified' ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse' :
+                                                                req.status === 'accepted' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                                    req.status === 'cancelled' ? 'bg-slate-100 text-slate-500 border-slate-200' :
+                                                                        'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                                         {req.status}
                                                     </span>
+                                                </td>
+                                                <td className="py-5 px-4 text-right" style={{ borderTopRightRadius: '1.25rem', borderBottomRightRadius: '1.25rem' }}>
+                                                    <div className="flex flex-col items-end gap-2">
+                                                        {req.status === 'pending' && (
+                                                            <>
+                                                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wide">Notify Available Donor:</p>
+                                                                <div className="flex flex-wrap justify-end gap-2" style={{ maxWidth: '300px' }}>
+                                                                    {donors.filter(d => d.blood_group === req.blood_group).length === 0 ? (
+                                                                        <span className="text-xs text-slate-400 italic">No matching donors</span>
+                                                                    ) : (
+                                                                        donors.filter(d => d.blood_group === req.blood_group).map(d => (
+                                                                            <button
+                                                                                key={d.id}
+                                                                                onClick={() => handleRequestStatus(req.id, 'notified', { donor_id: d.id, notified_at: new Date().toISOString() })}
+                                                                                className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-bold hover:bg-rose-500 hover:border-rose-500 hover:text-white transition-all shadow-sm"
+                                                                            >
+                                                                                {d.name}
+                                                                            </button>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {req.status === 'notified' && (
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="text-right">
+                                                                    <p className="text-xs font-black text-rose-600">Awaiting...</p>
+                                                                    <p className="text-xs text-slate-400 font-medium">{new Date(req.notified_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                                </div>
+                                                                <button
+                                                                    disabled={!canCancel}
+                                                                    onClick={() => handleRequestStatus(req.id, 'cancelled', { donor_id: null, notified_at: null })}
+                                                                    className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+                                                                    ${canCancel ? 'bg-rose-500 text-white shadow-md hover:bg-rose-600' : 'bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed'}`}
+                                                                >
+                                                                    {canCancel ? 'Re-list' : '1h Wait'}
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {req.status === 'accepted' && (
+                                                            <div className="relative">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        const form = e.currentTarget.nextSibling;
+                                                                        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+                                                                    }}
+                                                                    className="bg-indigo-600 text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full hover:bg-indigo-700 shadow-md transition-all active:scale-95"
+                                                                >
+                                                                    Schedule
+                                                                </button>
+                                                                <div style={{ display: 'none', position: 'absolute', right: 0, marginTop: '12px', zIndex: 50, width: '280px' }} className="p-6 bg-white rounded-2xl border border-indigo-100 shadow-2xl text-left animate-fade-in-up">
+                                                                    <p className="text-sm font-black text-slate-800 mb-4">Set Donation Details</p>
+                                                                    <form onSubmit={(e) => {
+                                                                        e.preventDefault();
+                                                                        const fd = new FormData(e.target);
+                                                                        handleRequestStatus(req.id, 'fulfilled', {
+                                                                            donation_date: fd.get('date'),
+                                                                            donation_time: fd.get('time'),
+                                                                            donation_location: fd.get('venue')
+                                                                        });
+                                                                    }} className="flex flex-col gap-3">
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input name="date" type="date" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
+                                                                            <input name="time" type="time" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
+                                                                        </div>
+                                                                        <input name="venue" type="text" placeholder="Building / Room / Floor" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
+                                                                        <button type="submit" className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs py-3 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95">Send Appointment</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {req.status === 'fulfilled' && (
+                                                            <div className="text-right bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
+                                                                <div className="text-xs font-black text-emerald-700">{req.donation_location}</div>
+                                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{req.donation_date} • {req.donation_time}</div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
                                     })}
                                 </tbody>
                             </table>
-                            {myRequests.length === 0 && <p className="text-center text-gray-500 mt-4">No requests sent yet.</p>}
+                            {myRequests.length === 0 && (
+                                <div className="text-center py-24 bg-slate-50/30 rounded-3xl border border-dashed border-slate-200 mt-4">
+                                    <Heart className="mx-auto mb-4 text-slate-200" size={48} />
+                                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No active life-saving requests</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import StatCard from '../components/StatCard';
-import { User, Clock, Heart, Calendar, MapPin, CheckCircle2, X } from 'lucide-react';
+import { User, Clock, Heart, Calendar, MapPin, CheckCircle2, X, Activity } from 'lucide-react';
 
 const DonorDashboard = () => {
     const { user } = useAuth();
@@ -136,36 +136,102 @@ const DonorDashboard = () => {
                     )}
                 </div>
 
-                {/* Donation History */}
-                <div className="card">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Clock className="text-blue-500" /> Donation History
+                {/* Donation Invitations */}
+                <div className="glass-panel mb-8" style={{ borderRadius: '1.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.4)' }}>
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Activity className="text-purple-500" size={22} /> Donation Invitations
                     </h2>
-                    <div className="flex flex-col gap-0">
-                        {requests.filter(r => r.donor_id === user.id && r.status === 'fulfilled').length > 0 ? (
-                            requests.filter(r => r.donor_id === user.id && r.status === 'fulfilled').map((item) => (
-                                <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-0">
-                                    <div className="bg-blue-50 p-2 rounded text-blue-500">
-                                        <Calendar size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold">{item.hospital_name}</p>
-                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                            <p className="text-sm text-gray flex items-center gap-1">
-                                                <Calendar size={12} /> {item.donation_date || new Date(item.created_at).toLocaleDateString()}
-                                            </p>
-                                            <p className="text-sm text-gray flex items-center gap-1">
-                                                <Clock size={12} /> {item.donation_time || '--:--'}
-                                            </p>
-                                            <p className="text-sm text-gray flex items-center gap-1">
-                                                <MapPin size={12} /> {item.donation_location || 'Hospital'}
-                                            </p>
+
+                    {requests.filter(r => r.donor_id === user.id && r.status === 'notified').length === 0 ? (
+                        <div className="text-center py-10 text-gray-400 bg-white/20 rounded-2xl border border-dashed border-gray-300">
+                            <Heart className="mx-auto mb-2 opacity-20" size={32} />
+                            No active invitations at the moment.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {requests.filter(r => r.donor_id === user.id && r.status === 'notified').map(req => (
+                                <div key={req.id} className="p-5 rounded-2xl bg-gradient-to-br from-purple-50/80 to-indigo-50/80 border border-purple-100 shadow-sm transition-all hover:shadow-md animate-fade-in-up">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">New Invitation</span>
+                                            </div>
+                                            <h3 className="font-bold text-gray-800 text-lg">{req.hospital_name}</h3>
+                                            <p className="text-[11px] text-gray-500 font-medium">Request for patient: <span className="text-purple-700 font-bold">{req.patient_name}</span></p>
                                         </div>
+                                        <div className="bg-white/60 p-2 rounded-xl border border-white">
+                                            <Calendar className="text-purple-600" size={20} />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleRequestStatus(req.id, 'accepted')}
+                                            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl hover:shadow-lg transition-all"
+                                        >
+                                            Accept Invitation
+                                        </button>
+                                        <button
+                                            onClick={() => handleRequestStatus(req.id, 'cancelled', { donor_id: null, notified_at: null })}
+                                            className="px-4 py-2.5 bg-white border border-purple-100 text-purple-600 text-xs font-bold rounded-xl hover:bg-purple-50 transition-all"
+                                        >
+                                            Decline
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Your Appointments */}
+                <div className="glass-panel" style={{ borderRadius: '1.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.4)' }}>
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Clock className="text-blue-500" size={22} /> Your Appointments
+                    </h2>
+                    <div className="space-y-4">
+                        {requests.filter(r => r.donor_id === user.id && (r.status === 'fulfilled' || r.status === 'accepted')).length > 0 ? (
+                            requests.filter(r => r.donor_id === user.id && (r.status === 'fulfilled' || r.status === 'accepted')).map((item) => (
+                                <div key={item.id} className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-2xl bg-white/30 border border-white/40 transition-all hover:bg-white/50">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.status === 'accepted' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                                        {item.status === 'accepted' ? <Clock size={24} /> : <CheckCircle2 size={24} />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-bold text-gray-800">{item.hospital_name}</h4>
+                                                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-tight">Patient: {item.patient_name}</p>
+                                            </div>
+                                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${item.status === 'accepted' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
+                                                {item.status === 'accepted' ? 'Action Needed' : 'Appointment Set'}
+                                            </span>
+                                        </div>
+
+                                        {item.status === 'accepted' ? (
+                                            <div className="mt-3 py-2 px-3 bg-white/60 rounded-lg border border-white/80 inline-flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                                                <p className="text-[10px] text-gray-600 font-medium">Waiting for hospital to confirm final venue and time...</p>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-4 mt-3">
+                                                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white/60 px-2.5 py-1.5 rounded-lg border border-white/50">
+                                                    <Calendar size={14} className="text-blue-500" /> <span className="font-bold">{item.donation_date}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-gray-700 bg-white/60 px-2.5 py-1.5 rounded-lg border border-white/50">
+                                                    <Clock size={14} className="text-blue-500" /> <span className="font-bold">{item.donation_time}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50/50 px-2.5 py-1.5 rounded-lg border border-blue-100">
+                                                    <MapPin size={14} /> <span className="font-bold">{item.donation_location}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-gray-500 italic">No previous donations found.</p>
+                            <div className="text-center py-10 text-gray-400 italic bg-white/10 rounded-2xl border border-dashed border-gray-300">
+                                <Clock size={32} className="mx-auto mb-2 opacity-20" />
+                                No upcoming appointments found.
+                            </div>
                         )}
                     </div>
                 </div>

@@ -60,9 +60,13 @@ export const DataProvider = ({ children }) => {
     };
 
     const handleRequestStatus = async (id, status, extraUpdates = {}) => {
+        // status can be: 'pending', 'notified', 'accepted', 'fulfilled', 'rejected', 'cancelled'
         const { error } = await supabase
             .from('donation_requests')
-            .update({ status, ...extraUpdates })
+            .update({
+                status,
+                ...extraUpdates
+            })
             .eq('id', id);
 
         if (error) console.error("Update request error:", error);

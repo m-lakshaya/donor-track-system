@@ -34,17 +34,39 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const initSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            const enriched = await enrichUser(session?.user);
-            setUser(enriched);
-            setLoading(false);
+            console.log("AuthContext: Initializing session...");
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                console.log("AuthContext: Session retrieved:", session ? "YES" : "NO");
+
+                if (session?.user) {
+                    // We have a user, let's try to enrich
+                    const enriched = await enrichUser(session.user);
+                    console.log("AuthContext: User enriched successfully");
+                    setUser(enriched);
+                } else {
+                    console.log("AuthContext: No active session found.");
+                    setUser(null);
+                }
+            } catch (err) {
+                console.error("AuthContext: Fatal initSession error:", err);
+                setUser(null);
+            } finally {
+                setLoading(false);
+                console.log("AuthContext: Initial load complete.");
+            }
         };
 
         initSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            const enriched = await enrichUser(session?.user);
-            setUser(enriched);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log("AuthContext: Auth change event:", event);
+            if (session?.user) {
+                const enriched = await enrichUser(session.user);
+                setUser(enriched);
+            } else {
+                setUser(null);
+            }
             setLoading(false);
         });
 
