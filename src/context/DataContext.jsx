@@ -74,7 +74,6 @@ export const DataProvider = ({ children }) => {
         return { error };
     };
 
-    // Hospital Actions
     const addRequest = async (requestData) => {
         const { error } = await supabase
             .from('donation_requests')
@@ -83,8 +82,12 @@ export const DataProvider = ({ children }) => {
                 status: 'pending'
             }]);
 
-        if (error) console.error("Add request error:", error);
-        else refreshData(); // Refresh immediately
+        if (error) {
+            console.error("Add request error:", error);
+        } else {
+            refreshData();
+        }
+        return { error };
     };
 
     return (

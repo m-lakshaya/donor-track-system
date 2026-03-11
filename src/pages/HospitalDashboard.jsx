@@ -10,7 +10,10 @@ const HospitalDashboard = () => {
     const [requestForm, setRequestForm] = useState({
         patient_name: '',
         blood_group: '',
-        units: 1
+        units: 1,
+        preferred_date: '',
+        preferred_time: '',
+        venue: ''
     });
 
     // Stats
@@ -18,15 +21,33 @@ const HospitalDashboard = () => {
     const approvedRequests = myRequests.filter(r => r.status === 'approved' || r.status === 'fulfilled').length;
     const pendingRequests = myRequests.filter(r => r.status === 'pending').length;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        addRequest({
-            requester_id: user.id,
-            hospital_name: user.name || 'Hospital',
-            ...requestForm
-        });
-        setRequestForm({ patient_name: '', blood_group: '', units: 1 });
-        alert('Request sent successfully!');
+        try {
+            const { error } = await addRequest({
+                requester_id: user.id,
+                hospital_name: user.name || 'Hospital',
+                ...requestForm
+            });
+
+            if (error) {
+                alert('Failed to send request: ' + error.message);
+                return;
+            }
+
+            setRequestForm({
+                patient_name: '',
+                blood_group: '',
+                units: 1,
+                preferred_date: '',
+                preferred_time: '',
+                venue: ''
+            });
+            alert('Request sent successfully!');
+        } catch (err) {
+            console.error(err);
+            alert('An unexpected error occurred.');
+        }
     };
 
     return (
@@ -65,37 +86,76 @@ const HospitalDashboard = () => {
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Blood Group</label>
-                            <select
-                                className="input-field mb-0"
-                                value={requestForm.blood_group}
-                                onChange={e => setRequestForm({ ...requestForm, blood_group: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Group</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Blood Group</label>
+                                <select
+                                    className="input-field mb-0"
+                                    value={requestForm.blood_group}
+                                    onChange={e => setRequestForm({ ...requestForm, blood_group: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select Group</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Units Needed</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="input-field mb-0"
+                                    value={requestForm.units}
+                                    onChange={e => setRequestForm({ ...requestForm, units: parseInt(e.target.value) })}
+                                    required
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Units Needed</label>
-                            <input
-                                type="number"
-                                min="1"
-                                className="input-field mb-0"
-                                value={requestForm.units}
-                                onChange={e => setRequestForm({ ...requestForm, units: parseInt(e.target.value) })}
-                                required
-                            />
+
+                        <div className="pt-2 border-t border-slate-100 mt-2">
+                            <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-4">Donation Schedule</p>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Preferred Date</label>
+                                    <input
+                                        type="date"
+                                        className="input-field mb-0"
+                                        value={requestForm.preferred_date}
+                                        onChange={e => setRequestForm({ ...requestForm, preferred_date: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Preferred Time</label>
+                                    <input
+                                        type="time"
+                                        className="input-field mb-0"
+                                        value={requestForm.preferred_time}
+                                        onChange={e => setRequestForm({ ...requestForm, preferred_time: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Venue / Location</label>
+                                <input
+                                    className="input-field mb-0"
+                                    placeholder="e.g. 2nd Floor, Blood Bank"
+                                    value={requestForm.venue}
+                                    onChange={e => setRequestForm({ ...requestForm, venue: e.target.value })}
+                                    required
+                                />
+                            </div>
                         </div>
-                        <button type="submit" className="btn btn-primary w-full mt-2 font-black uppercase tracking-widest">Send Request</button>
+
+                        <button type="submit" className="btn btn-primary w-full mt-4 font-black uppercase tracking-widest shadow-lg py-4">Send Request</button>
                     </form>
                 </div>
 
@@ -206,35 +266,9 @@ const HospitalDashboard = () => {
                                                         )}
 
                                                         {req.status === 'accepted' && (
-                                                            <div className="relative">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        const form = e.currentTarget.nextSibling;
-                                                                        form.style.display = form.style.display === 'none' ? 'block' : 'none';
-                                                                    }}
-                                                                    className="bg-indigo-600 text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full hover:bg-indigo-700 shadow-md transition-all active:scale-95"
-                                                                >
-                                                                    Schedule
-                                                                </button>
-                                                                <div style={{ display: 'none', position: 'absolute', right: 0, marginTop: '12px', zIndex: 50, width: '280px' }} className="p-6 bg-white rounded-2xl border border-indigo-100 shadow-2xl text-left animate-fade-in-up">
-                                                                    <p className="text-sm font-black text-slate-800 mb-4">Set Donation Details</p>
-                                                                    <form onSubmit={(e) => {
-                                                                        e.preventDefault();
-                                                                        const fd = new FormData(e.target);
-                                                                        handleRequestStatus(req.id, 'fulfilled', {
-                                                                            donation_date: fd.get('date'),
-                                                                            donation_time: fd.get('time'),
-                                                                            donation_location: fd.get('venue')
-                                                                        });
-                                                                    }} className="flex flex-col gap-3">
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            <input name="date" type="date" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
-                                                                            <input name="time" type="time" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
-                                                                        </div>
-                                                                        <input name="venue" type="text" placeholder="Building / Room / Floor" className="text-xs p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500" required />
-                                                                        <button type="submit" className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs py-3 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95">Send Appointment</button>
-                                                                    </form>
-                                                                </div>
+                                                            <div className="text-right bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100/50">
+                                                                <div className="text-xs font-black text-indigo-700 mb-0.5">Assigned: {req.venue}</div>
+                                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{req.preferred_date} • {req.preferred_time}</div>
                                                             </div>
                                                         )}
 
